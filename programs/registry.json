@@ -1,0 +1,67 @@
+{
+  "programs": [
+    {
+      "file": "programs\\program_1759206925.py",
+      "name": "DateTimeWeatherDisplay",
+      "version": "1.0",
+      "description": "Displays the current date, time, and weather status.",
+      "registered_at": 1759207889
+    },
+    {
+      "file": "programs\\program_1759810066.py",
+      "name": "SimpleCalculator",
+      "version": "1.1",
+      "description": "A simple calculator for basic arithmetic operations.",
+      "registered_at": 1759813076
+    },
+    {
+      "file": "programs\\program_1759815729.py",
+      "name": "TranslationModule",
+      "version": "1.0",
+      "description": "A simple translation module that translates text from one language to another.",
+      "registered_at": 1759815729
+    },
+    {
+      "file": "programs\\program_1759816010.py",
+      "name": "Timer",
+      "version": "1.0",
+      "description": "A simple countdown timer.",
+      "registered_at": 1759816010
+    },
+    {
+      "file": "programs\\program_1759818312.py",
+      "name": "SimpleCalculator",
+      "version": "1.1",
+      "description": "A simple calculator for basic arithmetic operations with multiple numbers.",
+      "registered_at": 1759818799
+    },
+    {
+      "file": "programs\\program_1760985913.py",
+      "name": "SimpleCalculator",
+      "version": "1.3",
+      "description": "A simple calculator that performs basic arithmetic operations on multiple numbers, including the ability to add or subtract a constant, and allows for intermediate calculations.",
+      "registered_at": 1760987446
+    },
+    {
+      "file": "programs\\program_1764655551.py",
+      "name": "ProjectGenerator",
+      "version": "1.0",
+      "description": "Generates a complete Python project structure with multiple files.",
+      "registered_at": 1764655551
+    },
+    {
+      "file": "programs\\program_1765256280.py",
+      "name": "TokyoWeatherFetcher",
+      "version": "1.1",
+      "description": "Fetches current weather in Tokyo.",
+      "registered_at": 1765257118
+    },
+    {
+      "file": "programs\\program_1765260983.py",
+      "name": "WeatherFetcher",
+      "version": "1.2",
+      "description": "Fetch today's weather information.",
+      "registered_at": 1765261920
+    }
+  ]
+}
