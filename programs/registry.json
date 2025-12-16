@@ -13,6 +13,20 @@
       "version": "1.0",
       "description": "Fetch and display weather information for a specified city.",
       "registered_at": 1765862326
+    },
+    {
+      "file": "programs\\program_1765863413.py",
+      "name": "News Display",
+      "version": "1.1",
+      "description": "Fetch and display news articles based on a specified topic.",
+      "registered_at": 1765864021
+    },
+    {
+      "file": "programs\\program_1765867407.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "Fetches and displays the current weather for a specified location.",
+      "registered_at": 1765867407
     }
   ]
 }
