@@ -27,7 +27,6 @@ def prompt_params() -> Dict[str, Any]:
         k, v = line.split("=", 1)
         k = k.strip()
         v = v.strip()
-        # 数値/配列/真偽を JSON 風で入れられるようにする
         try:
             v_parsed = json.loads(v)
         except json.JSONDecodeError:
@@ -75,15 +74,12 @@ def prompt_params_from_schema(schema) -> Dict[str, Any]:
         while True:
             val = input(f"- {label} {hint}: ").strip()
 
-            # デフォルト・任意処理
             if val == "" and default != "":
                 val = str(default)
             if val == "" and not required:
-                # 未指定を許容（セットしない）
                 break
 
             try:
-                # 型ごとのキャスト
                 if typ == "int":
                     casted = int(val)
                 elif typ == "float":
@@ -104,7 +100,6 @@ def prompt_params_from_schema(schema) -> Dict[str, Any]:
                 elif typ == "list[str]":
                     casted = _parse_list(val, str)
                 else:
-                    # str または未知タイプは文字列で
                     casted = val
 
                 params[key] = casted
@@ -127,6 +122,23 @@ def menu() -> int:
         if sel.isdigit() and 1 <= int(sel) <= 6:
             return int(sel)
         print("  無効な入力です。")
+
+def looks_like_project_generator(out: Any) -> bool:
+    """
+    project_generator の返り値かどうかを安全に判定する。
+    - dict[str,str] である
+    - キーがファイルパスっぽい（.py/.json/.txt）
+    """
+    if not isinstance(out, dict):
+        return False
+    if len(out) == 0:
+        return False
+    for k, v in out.items():
+        if not isinstance(k, str) or not isinstance(v, str):
+            return False
+        if not k.endswith((".py", ".json", ".txt")):
+            return False
+    return True
 
 def main():
     while True:
@@ -170,9 +182,7 @@ def main():
                 print("無効な番号です。")
                 continue
 
-            # 追加: スキーマを読む
             try:
-                # registry.py に load_module_by_index があれば利用（なくても except でフォールバック）
                 from registry import load_module_by_index  # type: ignore
                 mod = load_module_by_index(int(sel))
                 schema = getattr(mod, "__PARAMS_SCHEMA__", None)
@@ -181,7 +191,6 @@ def main():
             except Exception:
                 schema = None
 
-            # スキーマがあれば自動質問、なければ従来UI
             if schema:
                 params = prompt_params_from_schema(schema)
             else:
@@ -192,12 +201,8 @@ def main():
                 out = run_program_by_index(int(sel), params)
                 print("\n== 実行結果 ==")
 
-                # プロジェクトジェネレータ対応:
-                # out が { "main.py": "...", "registry.py": "..." } のような dict なら、
-                # 実際にファイルとして書き出す。
-                if isinstance(out, dict) and all(
-                    isinstance(k, str) and isinstance(v, str) for k, v in out.items()
-                ):
+                # ★ここが安全化ポイント：project_generator の誤判定を防ぐ
+                if looks_like_project_generator(out):
                     base = Path("./generated_projects") / f"project_{int(time.time())}"
                     base.mkdir(parents=True, exist_ok=True)
                     for relpath, src in out.items():
@@ -209,14 +214,12 @@ def main():
                     for relpath in out.keys():
                         print(" -", (base / relpath))
                 else:
-                    # 通常のツール（文字列結果）として扱う
                     print(out)
 
             except Exception as e:
                 print("[エラー] 実行に失敗:", e)
 
         elif choice == 4:
-            # 編集（LLMで上書き or 手動全置換）
             progs = list_programs()
             if not progs:
                 print("まだプログラムはありません。")
@@ -228,7 +231,6 @@ def main():
                 print("無効な番号です。")
                 continue
 
-            # 現行ソースを確認（長い場合があるので先頭だけ表示）
             src = read_program_source_by_index(int(sel))
             head = "\n".join(src.splitlines()[:40])
             print("\n--- 現在の先頭40行（参考） ---\n")
@@ -240,7 +242,6 @@ def main():
 
             if m == "1":
                 req = input("どのように変更しますか？（例：count引数を追加して…）: ").strip()
-                # 既存コードを文脈に含めて「修正後の完全版モジュール」を出させる
                 spec = (
                     "以下の既存モジュールに対し、指定の変更を加えた完全版を出力してください。\n"
                     "【既存】\n```python\n" + src + "\n```\n"
@@ -283,7 +284,6 @@ def main():
                 print("無効な番号です。")
 
         elif choice == 5:
-            # 削除
             progs = list_programs()
             if not progs:
                 print("まだプログラムはありません。")

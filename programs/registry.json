@@ -62,6 +62,13 @@
       "version": "1.2",
       "description": "Fetch today's weather information.",
       "registered_at": 1765261920
+    },
+    {
+      "file": "programs\\program_1765857633.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "Fetch and display weather information for a specified location.",
+      "registered_at": 1765857633
     }
   ]
 }
