@@ -69,6 +69,13 @@
       "version": "1.0",
       "description": "Fetch and display weather information for a specified location.",
       "registered_at": 1765857633
+    },
+    {
+      "file": "programs\\program_1765858863.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "Fetch and display weather information for a specified location.",
+      "registered_at": 1765858864
     }
   ]
 }
