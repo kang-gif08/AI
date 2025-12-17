@@ -72,3 +72,12 @@ def http_post_json(url: str, data: Any, timeout: float = 5):
         return resp.json()
     except ValueError:
         return resp.text
+
+# -------------------------------
+# Secrets helper（APIキー共通）
+# -------------------------------
+def get_secret(name: str) -> str:
+    """
+    Read secret value from workspace/secrets/{name}.txt
+    """
+    return read_text(f"secrets/{name}.txt").strip()

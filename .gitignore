@@ -16,3 +16,7 @@ venv/
 config.py
 *.env
 .env
+
+# secrets (do not commit)
+workspace/secrets/
+.env
