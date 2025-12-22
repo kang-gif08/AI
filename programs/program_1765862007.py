@@ -1,14 +1,14 @@
 __PROGRAM__ = {
-    "name": "Simple Calculator",
-    "version": "1.0",
-    "description": "A simple calculator that performs basic arithmetic operations.",
+    "name": "Enhanced Calculator",
+    "version": "1.1",
+    "description": "An enhanced calculator that performs multiple arithmetic operations and handles edge cases.",
     "params": [
         {
             "key": "operation",
             "label": "Operation",
             "type": "select",
             "required": True,
-            "choices": ["add", "subtract", "multiply", "divide"],
+            "choices": ["add", "subtract", "multiply", "divide", "power", "modulus"],
             "placeholder": "add"
         },
         {
@@ -35,7 +35,7 @@ def run(params: dict) -> str:
     num1 = params.get("num1")
     num2 = params.get("num2")
 
-    if operation not in ["add", "subtract", "multiply", "divide"]:
+    if operation not in ["add", "subtract", "multiply", "divide", "power", "modulus"]:
         return "Invalid operation."
 
     if num1 is None or num2 is None:
@@ -51,5 +51,84 @@ def run(params: dict) -> str:
         if num2 == 0:
             return "Cannot divide by zero."
         result = num1 / num2
+    elif operation == "power":
+        result = num1 ** num2
+    elif operation == "modulus":
+        if num2 == 0:
+            return "Cannot perform modulus by zero."
+        result = num1 % num2
 
     return str(result)
+
+__TESTS__ = [
+    {
+        "params": {
+            "operation": "add",
+            "num1": 5,
+            "num2": 3
+        }
+    },
+    {
+        "params": {
+            "operation": "subtract",
+            "num1": 10,
+            "num2": 4
+        }
+    },
+    {
+        "params": {
+            "operation": "multiply",
+            "num1": 7,
+            "num2": 6
+        }
+    },
+    {
+        "params": {
+            "operation": "divide",
+            "num1": 8,
+            "num2": 2
+        }
+    },
+    {
+        "params": {
+            "operation": "divide",
+            "num1": 8,
+            "num2": 0
+        }
+    },
+    {
+        "params": {
+            "operation": "power",
+            "num1": 2,
+            "num2": 3
+        }
+    },
+    {
+        "params": {
+            "operation": "modulus",
+            "num1": 10,
+            "num2": 3
+        }
+    },
+    {
+        "params": {
+            "operation": "modulus",
+            "num1": 10,
+            "num2": 0
+        }
+    },
+    {
+        "params": {
+            "operation": "invalid",
+            "num1": 10,
+            "num2": 5
+        }
+    },
+    {
+        "params": {
+            "operation": "add",
+            "num1": None,
+            "num2": 5
+        }
+    }
+]

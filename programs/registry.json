@@ -2,10 +2,49 @@
   "programs": [
     {
       "file": "programs\\program_1765862007.py",
-      "name": "Simple Calculator",
-      "version": "1.0",
-      "description": "A simple calculator that performs basic arithmetic operations.",
-      "registered_at": 1765862007
+      "name": "Enhanced Calculator",
+      "version": "1.1",
+      "description": "An enhanced calculator that performs multiple arithmetic operations and handles edge cases.",
+      "registered_at": 1765862007,
+      "kind": "module",
+      "params": [
+        {
+          "key": "operation",
+          "label": "Operation",
+          "type": "select",
+          "required": true,
+          "choices": [
+            "add",
+            "subtract",
+            "multiply",
+            "divide",
+            "power",
+            "modulus"
+          ],
+          "placeholder": "add"
+        },
+        {
+          "key": "num1",
+          "label": "First Number",
+          "type": "float",
+          "required": true,
+          "placeholder": "0.0"
+        },
+        {
+          "key": "num2",
+          "label": "Second Number",
+          "type": "float",
+          "required": true,
+          "placeholder": "0.0"
+        }
+      ],
+      "updated_at": 1766139280,
+      "history": [
+        {
+          "ts": 1766139280,
+          "note": "auto-improve"
+        }
+      ]
     },
     {
       "file": "programs\\program_1765862326.py",
@@ -20,6 +59,45 @@
       "version": "1.1",
       "description": "Fetch and display news articles based on a specified topic.",
       "registered_at": 1765864021
+    },
+    {
+      "file": "programs\\program_1766029649.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "Fetch and display the current weather for a specified location.",
+      "registered_at": 1766029649
+    },
+    {
+      "file": "programs\\program_1766038710.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "Fetches and displays the current weather for a specified location.",
+      "registered_at": 1766038710
+    },
+    {
+      "file": "programs\\program_1766040131.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "A program to display the current weather information.",
+      "registered_at": 1766040131
+    },
+    {
+      "file": "C:\\Users\\kante\\OneDrive\\デスクトップ\\自己AI\\programs\\program_1766152203.py",
+      "name": "Weather Display",
+      "version": "1.0",
+      "description": "Displays the current weather for a specified location.",
+      "kind": "utility",
+      "params": [
+        {
+          "key": "location",
+          "type": "string",
+          "required": true,
+          "placeholder": "Enter location"
+        }
+      ],
+      "created_at": 1766152203,
+      "spec": "天気を表示するプログラム",
+      "history": []
     }
   ]
 }
