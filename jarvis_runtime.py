@@ -4,21 +4,17 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, Optional
 import json
-import re
 import requests
 
 from registry import list_programs, run_program_by_index
 
-# 安全な作業ディレクトリ（脱獄防止）
+# 安全な作業ディレクトリ
 WORKSPACE_ROOT = Path("./workspace").resolve()
 PROGRAMS_ROOT = Path("./programs").resolve()
-WORKSPACE_ROOT.mkdir(exist_ok=True)
-
-# secrets は workspace/secrets/ に置く（.gitignore でコミットしない前提）
 SECRETS_DIR = (WORKSPACE_ROOT / "secrets").resolve()
-SECRETS_DIR.mkdir(parents=True, exist_ok=True)
 
-_SECRET_NAME_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
+WORKSPACE_ROOT.mkdir(exist_ok=True)
+SECRETS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _safe_path(base: Path, relative: str) -> Path:
@@ -30,36 +26,20 @@ def _safe_path(base: Path, relative: str) -> Path:
 
 
 # -------------------------------
-# Secrets
+# Secrets (workspace/secrets)
 # -------------------------------
-def get_secret(name: str) -> str:
+def get_secret(name: str, default: Optional[str] = None) -> str:
     """
-    workspace/secrets/ から秘密情報を読む。
-    例: workspace/secrets/MY_API_KEY.txt に保存しておけば get_secret("MY_API_KEY") で取得。
+    Read a secret from ./workspace/secrets/<name>.txt
+    例: get_secret("WEATHER_API_KEY")
     """
-    if not isinstance(name, str) or not name.strip():
-        raise ValueError("Secret name must be a non-empty string")
-    if not _SECRET_NAME_RE.match(name):
-        raise ValueError("Secret name contains invalid characters (allowed: A-Za-z0-9_.-)")
-
-    candidates = [
-        _safe_path(WORKSPACE_ROOT, f"secrets/{name}.txt"),
-        _safe_path(WORKSPACE_ROOT, f"secrets/{name}"),
-    ]
-
-    for p in candidates:
-        if p.exists():
-            val = p.read_text(encoding="utf-8").strip()
-            if val:
-                return val
-            raise ValueError(f"Secret file is empty: {p}")
-
-    raise FileNotFoundError(
-        f"Secret not found. Create one of:\n"
-        f" - workspace/secrets/{name}.txt\n"
-        f" - workspace/secrets/{name}\n"
-        f"(and keep workspace/secrets/ in .gitignore)"
-    )
+    filename = f"{name}.txt" if not name.endswith(".txt") else name
+    p = _safe_path(SECRETS_DIR, filename)
+    if not p.exists():
+        if default is not None:
+            return str(default)
+        raise FileNotFoundError(f"Secret not found: {p}")
+    return p.read_text(encoding="utf-8").strip()
 
 
 # -------------------------------
@@ -122,3 +102,14 @@ def http_post_json(url: str, data: Any, timeout: float = 10):
         return resp.json()
     except ValueError:
         return resp.text
+
+
+# -------------------------------
+# Backward compat (deprecated)
+# -------------------------------
+def fetch(url: str, params: Optional[Dict[str, Any]] = None, timeout: float = 10):
+    """
+    互換用（非推奨）: 既存プログラムが jarvis_runtime.fetch を呼んでも落ちないために残す。
+    新規生成は quality_gate で禁止して http_get_json に寄せる。
+    """
+    return http_get_json(url, params=params, timeout=timeout)
