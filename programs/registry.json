@@ -104,6 +104,48 @@
       "version": "1.1",
       "description": "Fetches and displays the current weather for a specified location.",
       "file": "programs\\program_1766457623.py"
+    },
+    {
+      "name": "Highest Temperature Prefecture",
+      "version": "1.0",
+      "description": "Displays the prefecture with the highest temperature.",
+      "file": "programs\\program_1766909096.py"
+    },
+    {
+      "name": "HighestTemperaturePrefecture",
+      "version": "1.0",
+      "description": "Displays the prefecture with the highest temperature.",
+      "file": "programs\\program_1766909330.py"
+    },
+    {
+      "name": "Translation Program",
+      "version": "1.0",
+      "description": "A program to translate text from one language to another.",
+      "file": "programs\\program_1766916456.py"
+    },
+    {
+      "name": "English to Japanese Translator",
+      "version": "1.0",
+      "description": "Translates English text to Japanese.",
+      "file": "programs\\program_1766981724.py"
+    },
+    {
+      "name": "EnglishToJapaneseTranslator",
+      "version": "1.0",
+      "description": "Translates English text to Japanese.",
+      "file": "programs\\program_1767088783.py"
+    },
+    {
+      "name": "Translation Program",
+      "version": "1.0",
+      "description": "A program to translate text using DeepL API.",
+      "file": "programs\\program_1767160150.py"
+    },
+    {
+      "name": "Translation Program",
+      "version": "1.0",
+      "description": "A program to translate text into a specified language.",
+      "file": "programs\\program_1767674309.py"
     }
   ]
 }

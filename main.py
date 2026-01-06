@@ -1,10 +1,9 @@
-# main.py
 from __future__ import annotations
 
 import json
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Callable, Tuple
+from typing import Dict, Any, List, Callable, Tuple, Optional
 
 from ai_codegen import generate_program_best as generate_program
 from quality_gate import gate, format_result, GateResult
@@ -57,22 +56,33 @@ def _parse_list(val: str, elem_cast: Callable[[str], Any]) -> List[Any]:
     return [elem_cast(x.strip()) for x in val.split(",") if x.strip()]
 
 
-def prompt_params_from_schema(schema: Any) -> Dict[str, Any]:
+def prompt_params_from_schema(schema: Any, prefill: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     __PROGRAM__['params'] を前提とした対話入力。
-    ※ schema が壊れていても Jarvis 本体が落ちないように防御する（重要）
+    - schema が壊れていても Jarvis 本体が落ちないように防御する
+    - prefill がある場合、その key は入力をスキップしてそのまま使う（A→B 用）
     """
     if not isinstance(schema, list) or any(not isinstance(x, dict) for x in schema):
         print("[警告] スキーマが不正です（list[dict]ではありません）。key=value方式にフォールバックします。")
-        return prompt_params()
+        base = prompt_params()
+        if prefill:
+            base.update(prefill)
+        return base
 
     params: Dict[str, Any] = {}
+    if prefill:
+        params.update(prefill)
+
     print("=== パラメータ入力（スキーマ） ===")
 
     for item in schema:
         key = item.get("key")
         if not isinstance(key, str) or not key:
             print("[警告] スキーマ項目に key がありません。スキップします。")
+            continue
+
+        # prefill 済みは聞かない
+        if key in params and params[key] is not None:
             continue
 
         label = item.get("label", key)
@@ -186,10 +196,11 @@ def menu() -> int:
     print("3) 登録済みプログラムを実行する")
     print("4) 登録済みプログラムを編集する（自己評価→必要なら再生成まで自動）")
     print("5) 登録済みプログラムを削除する")
-    print("6) 終了")
+    print("6) A→B パイプライン合体（Aの出力をBへ渡す）")
+    print("7) 終了")
     while True:
         sel = input("> 番号: ").strip()
-        if sel.isdigit() and 1 <= int(sel) <= 6:
+        if sel.isdigit() and 1 <= int(sel) <= 7:
             return int(sel)
         print("  無効な入力です。")
 
@@ -209,6 +220,266 @@ def looks_like_project_generator(out: Any) -> bool:
         if len(k) > 2000 or len(v) > 2_000_000:
             return False
     return True
+
+
+def _safe_str(x: Any) -> str:
+    if isinstance(x, (dict, list)):
+        try:
+            return json.dumps(x, ensure_ascii=False, indent=2)
+        except Exception:
+            return str(x)
+    return str(x)
+
+
+def _get_schema_and_kind(idx: int) -> Tuple[Any, str]:
+    schema = None
+    kind = "module"
+    try:
+        mod = load_module_by_index(idx)
+        prog = getattr(mod, "__PROGRAM__", {})
+        if isinstance(prog, dict):
+            schema = prog.get("params")
+            kind = prog.get("kind", "module") or "module"
+    except Exception:
+        schema = None
+        kind = "module"
+    return schema, kind
+
+
+def _infer_b_input_key(schema_b: Any) -> Optional[str]:
+    """
+    B の params から「Aの出力を入れそうなキー」を推測。
+    1) required が1個ならそれ
+    2) よくあるキー名を優先
+    3) 無理なら None
+    """
+    if not isinstance(schema_b, list):
+        return None
+    items = [x for x in schema_b if isinstance(x, dict) and isinstance(x.get("key"), str) and x.get("key")]
+    if not items:
+        return None
+
+    req = [x for x in items if bool(x.get("required", False))]
+    if len(req) == 1:
+        return str(req[0]["key"])
+
+    prefer = [
+        "input", "text", "query", "prompt", "content", "message",
+        "keyword", "topic", "name", "city", "location"
+    ]
+    keymap = {str(x["key"]).lower(): str(x["key"]) for x in items}
+    for p in prefer:
+        if p in keymap:
+            return keymap[p]
+    return None
+
+
+def _build_pipeline_wrapper_code(idx_a: int, idx_b: int, b_input_key: str) -> str:
+    """
+    A→B を新しいプログラムとして登録するためのラッパを生成（LLMなし）。
+    - Aの params をそのまま受け取る
+    - Bの params は b_ プレフィックスで受け取る（衝突回避）
+    - Bの b_input_key は Aの出力を自動で入れる（ユーザーに聞かない）
+    """
+    mod_a = load_module_by_index(idx_a)
+    mod_b = load_module_by_index(idx_b)
+    prog_a = getattr(mod_a, "__PROGRAM__", {}) if isinstance(getattr(mod_a, "__PROGRAM__", None), dict) else {}
+    prog_b = getattr(mod_b, "__PROGRAM__", {}) if isinstance(getattr(mod_b, "__PROGRAM__", None), dict) else {}
+
+    name_a = str(prog_a.get("name", f"Program{idx_a}"))
+    name_b = str(prog_b.get("name", f"Program{idx_b}"))
+
+    schema_a = prog_a.get("params", [])
+    schema_b = prog_b.get("params", [])
+
+    def clean_item(it: Dict[str, Any], key_override: Optional[str] = None, label_prefix: str = "") -> Dict[str, Any]:
+        out: Dict[str, Any] = {
+            "key": key_override if key_override else it.get("key"),
+            "label": (label_prefix + (it.get("label") or it.get("key") or "")).strip(),
+            "type": it.get("type", "str"),
+            "required": bool(it.get("required", False)),
+        }
+        if "default" in it:
+            out["default"] = it.get("default")
+        if "choices" in it:
+            out["choices"] = it.get("choices")
+        if "placeholder" in it:
+            out["placeholder"] = it.get("placeholder")
+        return out
+
+    params_all: List[Dict[str, Any]] = []
+
+    if isinstance(schema_a, list):
+        for it in schema_a:
+            if isinstance(it, dict) and isinstance(it.get("key"), str) and it.get("key"):
+                params_all.append(clean_item(it))
+
+    if isinstance(schema_b, list):
+        for it in schema_b:
+            if not (isinstance(it, dict) and isinstance(it.get("key"), str) and it.get("key")):
+                continue
+            k = str(it["key"])
+            if k == b_input_key:
+                continue
+            params_all.append(clean_item(it, key_override=f"b_{k}", label_prefix="B: "))
+
+    wrapper = f"""import jarvis_runtime
+import json
+
+__PROGRAM__ = {{
+  "name": "Pipeline: {name_a} -> {name_b}",
+  "version": "1.0",
+  "description": "Runs program A then feeds its output into program B.",
+  "params": {json.dumps(params_all, ensure_ascii=False, indent=2)},
+  "kind": "module"
+}}
+
+def _safe_str(x):
+  if isinstance(x, (dict, list)):
+    try:
+      return json.dumps(x, ensure_ascii=False, indent=2)
+    except Exception:
+      return str(x)
+  return str(x)
+
+def run(params: dict) -> str:
+  # A params
+  a_params = {{}}
+"""
+    if isinstance(schema_a, list):
+        for it in schema_a:
+            if isinstance(it, dict) and isinstance(it.get("key"), str) and it.get("key"):
+                k = str(it["key"])
+                wrapper += f"  if '{k}' in params:\n    a_params['{k}'] = params['{k}']\n"
+
+    wrapper += f"""
+  out_a = jarvis_runtime.call_program_by_index({idx_a}, a_params)
+
+  # B params
+  b_params = {{}}
+  b_params[{b_input_key!r}] = out_a
+"""
+
+    if isinstance(schema_b, list):
+        for it in schema_b:
+            if not (isinstance(it, dict) and isinstance(it.get("key"), str) and it.get("key")):
+                continue
+            k = str(it["key"])
+            if k == b_input_key:
+                continue
+            wrapper += f"  if 'b_{k}' in params:\n    b_params['{k}'] = params['b_{k}']\n"
+
+    wrapper += f"""
+  out_b = jarvis_runtime.call_program_by_index({idx_b}, b_params)
+  return out_b if isinstance(out_b, str) else _safe_str(out_b)
+"""
+    return wrapper
+
+
+def pipeline_ab_flow() -> None:
+    """
+    A→B パイプライン合体（実行）
+    - Aを実行
+    - 出力をBのどれかの入力キーに流し込む（推測 or 選択）
+    - Bを実行
+    - 希望があれば「合体した新プログラム」として登録
+    """
+    progs = list_programs()
+    if len(progs) < 2:
+        print("パイプラインには2つ以上のプログラムが必要です。")
+        return
+
+    print("\n--- A（先に実行）を選択 ---")
+    for i, p in enumerate(progs):
+        print(f"{i}: {p['name']} v{p['version']}")
+    sel_a = input("Aの番号: ").strip()
+    if not (sel_a.isdigit() and 0 <= int(sel_a) < len(progs)):
+        print("無効な番号です。")
+        return
+    idx_a = int(sel_a)
+
+    print("\n--- B（後に実行）を選択 ---")
+    for i, p in enumerate(progs):
+        print(f"{i}: {p['name']} v{p['version']}")
+    sel_b = input("Bの番号: ").strip()
+    if not (sel_b.isdigit() and 0 <= int(sel_b) < len(progs)):
+        print("無効な番号です。")
+        return
+    idx_b = int(sel_b)
+
+    if idx_a == idx_b:
+        print("A と B は別のプログラムを選んでください。")
+        return
+
+    schema_a, _kind_a = _get_schema_and_kind(idx_a)
+    schema_b, _kind_b = _get_schema_and_kind(idx_b)
+
+    if schema_a is not None:
+        params_a = prompt_params_from_schema(schema_a)
+    else:
+        print("(A: スキーマ未定義: key=value 方式で入力)")
+        params_a = prompt_params()
+
+    try:
+        out_a = run_program_by_index(idx_a, params_a)
+    except Exception as e:
+        print("[エラー] Aの実行に失敗:", e)
+        return
+
+    # Bに流し込むキー決定
+    b_input_key = _infer_b_input_key(schema_b)
+    if not b_input_key:
+        keys: List[str] = []
+        if isinstance(schema_b, list):
+            for it in schema_b:
+                if isinstance(it, dict) and isinstance(it.get("key"), str) and it.get("key"):
+                    keys.append(str(it["key"]))
+        print("\n[B入力キー選択] 自動推測できませんでした。Bのparamsキー候補:")
+        print("  " + ", ".join(keys) if keys else "  (候補なし)")
+        chosen = input("Aの出力を入れるBのキーを入力: ").strip()
+        if chosen and chosen in keys:
+            b_input_key = chosen
+        else:
+            print("無効。キャンセルします。")
+            return
+
+    # B params：b_input_key は out_a で自動注入（ユーザーに聞かない）
+    prefill_b = {b_input_key: out_a}
+
+    if schema_b is not None:
+        params_b = prompt_params_from_schema(schema_b, prefill=prefill_b)
+    else:
+        print("(B: スキーマ未定義: key=value 方式で入力)")
+        params_b = prompt_params()
+        params_b.update(prefill_b)
+
+    try:
+        out_b = run_program_by_index(idx_b, params_b)
+    except Exception as e:
+        print("[エラー] Bの実行に失敗:", e)
+        return
+
+    print("\n== パイプライン結果 ==")
+    print("---- A output ----")
+    print(_safe_str(out_a))
+    print("---- B output ----")
+    print(_safe_str(out_b))
+
+    ok = input("\nこのA→Bを“合体した新プログラム”として登録しますか？ (y/n): ").strip().lower()
+    if ok == "y":
+        wrapper_code = _build_pipeline_wrapper_code(idx_a, idx_b, b_input_key)
+        res = gate(wrapper_code)
+        print("\n--- 合体プログラムの品質ゲート ---")
+        print(format_result(res))
+        if not res.ok:
+            ok2 = input("品質ゲートに通っていませんが登録しますか？ (y/n): ").strip().lower()
+            if ok2 != "y":
+                print("キャンセルしました。")
+                return
+
+        path = save_program(wrapper_code)
+        meta = register_program(path)
+        print(f"[登録完了] {meta['name']}  v{meta['version']}  -> {meta['file']}")
 
 
 def main():
@@ -278,17 +549,7 @@ def main():
             idx = int(sel)
 
             # スキーマを読む（壊れてても落ちない）
-            schema = None
-            kind = "module"
-            try:
-                mod = load_module_by_index(idx)
-                prog = getattr(mod, "__PROGRAM__", {})
-                if isinstance(prog, dict):
-                    schema = prog.get("params")
-                    kind = prog.get("kind", "module") or "module"
-            except Exception:
-                schema = None
-                kind = "module"
+            schema, kind = _get_schema_and_kind(idx)
 
             if schema is not None:
                 params = prompt_params_from_schema(schema)
@@ -393,6 +654,10 @@ def main():
                 continue
             deleted = delete_program_by_index(int(sel))
             print(f"[削除完了] {deleted['name']} を削除しました。")
+
+        # 6) A->B pipeline
+        elif choice == 6:
+            pipeline_ab_flow()
 
         else:
             print("終了します。")
