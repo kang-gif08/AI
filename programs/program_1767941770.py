@@ -2,7 +2,7 @@ import jarvis_runtime
 
 __PROGRAM__ = {
     "name": "Weather Display",
-    "version": "1.1",
+    "version": "1.0",
     "description": "Fetches and displays the current weather for a specified location.",
     "params": [
         {
@@ -21,12 +21,11 @@ def run(params: dict):
     api_key = jarvis_runtime.get_secret("WEATHER_API_KEY")
     url = f"http://api.openweathermap.org/data/2.5/weather?q={location}&appid={api_key}&units=metric"
     
-    response = jarvis_runtime.http_get_json(url)
+    weather_data = jarvis_runtime.http_get_json(url)
     
-    if response and response.get("cod") == 200:
-        temperature = response["main"]["temp"]
-        weather_description = response["weather"][0]["description"]
+    if 'main' in weather_data:
+        temperature = weather_data['main']['temp']
+        weather_description = weather_data['weather'][0]['description']
         return f"The current temperature in {location} is {temperature}°C with {weather_description}."
     else:
-        error_message = response.get("message", "Could not fetch weather data.")
-        return f"Error: {error_message}. Please check the location and try again."
+        return "Could not fetch weather data. Please check the location."

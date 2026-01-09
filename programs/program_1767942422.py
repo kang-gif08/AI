@@ -10,7 +10,7 @@ __PROGRAM__ = {
             "label": "Text to Translate",
             "type": "str",
             "required": True,
-            "placeholder": "Enter the text you want to translate"
+            "placeholder": "Enter text here"
         },
         {
             "key": "target_lang",
@@ -18,14 +18,14 @@ __PROGRAM__ = {
             "type": "str",
             "required": True,
             "choices": ["en", "es", "fr", "de", "ja", "zh"],
-            "placeholder": "Enter the target language code (e.g., 'en' for English)"
+            "placeholder": "Enter target language code"
         },
         {
             "key": "source_lang",
             "label": "Source Language (optional)",
             "type": "str",
             "required": False,
-            "placeholder": "Enter the source language code (optional)"
+            "placeholder": "Enter source language code (optional)"
         }
     ],
     "kind": "module"

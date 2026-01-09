@@ -1,151 +1,94 @@
 {
   "programs": [
     {
-      "file": "programs\\program_1765862007.py",
-      "name": "Enhanced Calculator",
-      "version": "1.1",
-      "description": "An enhanced calculator that performs multiple arithmetic operations and handles edge cases.",
-      "registered_at": 1765862007,
-      "kind": "module",
-      "params": [
-        {
-          "key": "operation",
-          "label": "Operation",
-          "type": "select",
-          "required": true,
-          "choices": [
-            "add",
-            "subtract",
-            "multiply",
-            "divide",
-            "power",
-            "modulus"
-          ],
-          "placeholder": "add"
-        },
-        {
-          "key": "num1",
-          "label": "First Number",
-          "type": "float",
-          "required": true,
-          "placeholder": "0.0"
-        },
-        {
-          "key": "num2",
-          "label": "Second Number",
-          "type": "float",
-          "required": true,
-          "placeholder": "0.0"
-        }
-      ],
-      "updated_at": 1766139280,
-      "history": [
-        {
-          "ts": 1766139280,
-          "note": "auto-improve"
-        }
-      ]
-    },
-    {
-      "file": "programs\\program_1765862326.py",
       "name": "Weather Display",
       "version": "1.0",
-      "description": "Fetch and display weather information for a specified city.",
-      "registered_at": 1765862326
+      "description": "Fetches and displays the current weather for a specified location.",
+      "file": "programs\\program_1767941770.py"
     },
     {
-      "file": "programs\\program_1765863413.py",
       "name": "News Display",
-      "version": "1.1",
+      "version": "1.2",
       "description": "Fetch and display news articles based on a specified topic.",
-      "registered_at": 1765864021
+      "file": "programs\\program_1767941901.py"
     },
     {
-      "file": "programs\\program_1766029649.py",
-      "name": "Weather Display",
+      "name": "Calculator",
       "version": "1.0",
-      "description": "Fetch and display the current weather for a specified location.",
-      "registered_at": 1766029649
-    },
-    {
-      "file": "programs\\program_1766038710.py",
-      "name": "Weather Display",
-      "version": "1.0",
-      "description": "Fetches and displays the current weather for a specified location.",
-      "registered_at": 1766038710
-    },
-    {
-      "file": "programs\\program_1766040131.py",
-      "name": "Weather Display",
-      "version": "1.0",
-      "description": "A program to display the current weather information.",
-      "registered_at": 1766040131
-    },
-    {
-      "file": "C:\\Users\\kante\\OneDrive\\デスクトップ\\自己AI\\programs\\program_1766152203.py",
-      "name": "Weather Display",
-      "version": "1.0",
-      "description": "Displays the current weather for a specified location.",
-      "kind": "utility",
-      "params": [
-        {
-          "key": "location",
-          "type": "string",
-          "required": true,
-          "placeholder": "Enter location"
-        }
-      ],
-      "created_at": 1766152203,
-      "spec": "天気を表示するプログラム",
-      "history": []
-    },
-    {
-      "name": "Weather Display",
-      "version": "1.1",
-      "description": "Fetches and displays the current weather for a specified location.",
-      "file": "programs\\program_1766457623.py"
-    },
-    {
-      "name": "Highest Temperature Prefecture",
-      "version": "1.0",
-      "description": "Displays the prefecture with the highest temperature.",
-      "file": "programs\\program_1766909096.py"
-    },
-    {
-      "name": "HighestTemperaturePrefecture",
-      "version": "1.0",
-      "description": "Displays the prefecture with the highest temperature.",
-      "file": "programs\\program_1766909330.py"
-    },
-    {
-      "name": "Translation Program",
-      "version": "1.0",
-      "description": "A program to translate text from one language to another.",
-      "file": "programs\\program_1766916456.py"
-    },
-    {
-      "name": "English to Japanese Translator",
-      "version": "1.0",
-      "description": "Translates English text to Japanese.",
-      "file": "programs\\program_1766981724.py"
-    },
-    {
-      "name": "EnglishToJapaneseTranslator",
-      "version": "1.0",
-      "description": "Translates English text to Japanese.",
-      "file": "programs\\program_1767088783.py"
-    },
-    {
-      "name": "Translation Program",
-      "version": "1.0",
-      "description": "A program to translate text using DeepL API.",
-      "file": "programs\\program_1767160150.py"
+      "description": "A simple calculator that performs basic arithmetic operations.",
+      "file": "programs\\program_1767942008.py"
     },
     {
       "name": "Translation Program",
       "version": "1.0",
       "description": "A program to translate text into a specified language.",
-      "file": "programs\\program_1767674309.py"
+      "file": "programs\\program_1767942422.py"
+    },
+    {
+      "name": "Text Summarizer",
+      "version": "1.0",
+      "description": "A program to summarize a given text.",
+      "file": "programs\\program_1767942468.py"
+    },
+    {
+      "name": "Date Calculator",
+      "version": "1.0",
+      "description": "Calculates future or past dates based on input days.",
+      "file": "programs\\program_1767943118.py"
+    },
+    {
+      "name": "Unit Converter",
+      "version": "1.0",
+      "description": "A tool to convert between length, weight, and temperature units.",
+      "file": "programs\\program_1767943402.py"
+    },
+    {
+      "name": "City Temperature Ranking",
+      "version": "1.0",
+      "description": "Fetch current temperatures for multiple cities and rank them in ascending order.",
+      "file": "programs\\program_1767943998.py"
+    },
+    {
+      "name": "TextStatisticsTool",
+      "version": "1.0",
+      "description": "A tool to analyze text and provide statistics including character count, line count, empty line count, word count, and top 10 frequent words.",
+      "file": "programs\\program_1767944390.py"
+    },
+    {
+      "name": "抽選ツール",
+      "version": "1.0",
+      "description": "候補者リストから重複なしで当選者を選ぶツール",
+      "file": "programs\\program_1767944565.py"
+    },
+    {
+      "name": "BMI and Calorie Calculator",
+      "version": "1.0",
+      "description": "Calculate BMI, standard weight, and daily calorie target based on height, weight, activity level, and goal.",
+      "file": "programs\\program_1767944787.py"
+    },
+    {
+      "name": "TextDiff",
+      "version": "1.0",
+      "description": "行単位で2つのテキストを比較し、簡易diffを表示します。",
+      "file": "programs\\program_1767945020.py"
+    },
+    {
+      "name": "文章の言い換えプログラム",
+      "version": "1.0",
+      "description": "日本語文章を、指定トーンに言い換えます（内容は変えない）。",
+      "file": "programs\\program_1767946541.py"
+    },
+    {
+      "name": "Progress Rate Calculator",
+      "version": "1.0",
+      "description": "Calculate progress rate and remaining estimates based on total tasks and completed tasks.",
+      "file": "programs\\program_1767947913.py"
+    },
+    {
+      "name": "NewsFetcher",
+      "version": "1.0",
+      "description": "Fetches the latest news articles.",
+      "file": "programs\\program_1767951626.py"
     }
   ]
 }
