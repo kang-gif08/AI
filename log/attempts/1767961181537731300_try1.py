@@ -2,8 +2,8 @@ import jarvis_runtime
 
 __PROGRAM__ = {
     "name": "文章の言い換えプログラム",
-    "version": "1.3",
-    "description": "日本語文章を、指定トーンに言い換えます（内容は変えない）。OpenAI APIを使用します。",
+    "version": "1.2",
+    "description": "日本語文章を、指定トーンに言い換えます（内容は変えない）。",
     "params": [
         {
             "key": "text",
@@ -28,13 +28,16 @@ def run(params: dict):
     text = params['text']
     tone = params['tone']
     
-    # OpenAI APIを使って言い換えを行う
-    prompt = f"次の文章を{tone}なトーンで言い換えてください: {text}"
-    response = jarvis_runtime.http_post_json("https://api.openai.com/v1/engines/davinci-codex/completions", {
-        "prompt": prompt,
-        "max_tokens": 100
-    })
-    
-    modified_text = response['choices'][0]['text'].strip()
-    
+    # トーンに応じた言い換えを行う
+    if tone == "フォーマル":
+        modified_text = f"フォーマルな表現: {text}"
+    elif tone == "カジュアル":
+        modified_text = f"カジュアルな表現: {text}"
+    elif tone == "友好的":
+        modified_text = f"友好的な表現: {text}"
+    elif tone == "ビジネス":
+        modified_text = f"ビジネスな表現: {text}"
+    else:
+        modified_text = text
+
     return modified_text
